@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <title>thedash.com chromecast</title>
+  <style type="text/css">
+    html {
+      height: 100%;
+      padding: 0;
+      width: 100%;
+    }
+
+    body {
+      overflow: hidden;
+      height: 100%;
+      padding: 0;
+      margin: 0;
+    }
+
+    #dash {
+      height: 100%;
+      background: #e9ecf0 url('dash.png') no-repeat 50% 50%;
+      opacity: 0;
+      transition: opacity 4s ease;
+    }
+
+    #dash.show {
+      opacity: 1;
+    }
+
+    iframe {
+      position: absolute;
+      left: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      opacity: 0;
+      transition: opacity 0;
+      width: 100%;
+      height: 100%;
+      border: 0 transparent;
+    }
+
+    iframe.show {
+      transition: opacity 1s;
+      opacity: 1;
+    }
+
+    </style>
+  </head>
+  <body>
+    <div id="dash">
+
+    </div>
+    <iframe></iframe>
+  </body>
+  </div>
+    <script type="text/javascript" src="https://www.gstatic.com/cast/sdk/libs/receiver/2.0.0/cast_receiver.js"></script>
+    <script type="text/javascript">
+      window.onload = function () {
+        var dash = document.getElementById('dash')
+          , iframe = document.querySelector('iframe')
+
+        dash.classList.add('show')
+
+        cast.receiver.logger.setLevelValue(cast.receiver.LoggerLevel.DEBUG)
+
+        window.castReceiverManager = cast.receiver.CastReceiverManager.getInstance()
+
+        castReceiverManager.onReady = function(event) {
+          console.log('Received Ready event: ' + JSON.stringify(event.data))
+          window.castReceiverManager.setApplicationState('chromecast-dashboard is ready...')
+        }
+
+        castReceiverManager.onSenderConnected = function (event) {
+          console.log('Received Sender Connected event: ' + event.senderId)
+        }
+
+        castReceiverManager.onSenderDisconnected = function (event) {
+          console.log('Received Sender Disconnected event: ' + event.senderId)
+        }
+
+        window.messageBus = window.castReceiverManager.getCastMessageBus('urn:x-cast:com.google.cast.thedash', cast.receiver.CastMessageBus.MessageType.JSON)
+
+        window.messageBus.onMessage = function (event) {
+          dash.classList.remove('show')
+          iframe.classList.add('show')
+          console.log(event, event.data)
+          iframe.src = event.data.url
+        }
+        window.castReceiverManager.start({statusText: 'Dashboard is loading'})
+      }
+
+    </script>
+  </body>
+</html>

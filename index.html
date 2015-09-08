@@ -47,9 +47,7 @@
     </style>
   </head>
   <body>
-    <div id="dash">
-
-    </div>
+    <div id="dash"></div>
     <iframe></iframe>
   </body>
   </div>
@@ -58,24 +56,14 @@
       window.onload = function () {
         var dash = document.getElementById('dash')
           , iframe = document.querySelector('iframe')
+          , interval = null
 
         dash.classList.add('show')
-
-        cast.receiver.logger.setLevelValue(cast.receiver.LoggerLevel.DEBUG)
 
         window.castReceiverManager = cast.receiver.CastReceiverManager.getInstance()
 
         castReceiverManager.onReady = function(event) {
-          console.log('Received Ready event: ' + JSON.stringify(event.data))
           window.castReceiverManager.setApplicationState('chromecast-dashboard is ready...')
-        }
-
-        castReceiverManager.onSenderConnected = function (event) {
-          console.log('Received Sender Connected event: ' + event.senderId)
-        }
-
-        castReceiverManager.onSenderDisconnected = function (event) {
-          console.log('Received Sender Disconnected event: ' + event.senderId)
         }
 
         window.messageBus = window.castReceiverManager.getCastMessageBus('urn:x-cast:com.google.cast.thedash', cast.receiver.CastMessageBus.MessageType.JSON)
@@ -83,8 +71,14 @@
         window.messageBus.onMessage = function (event) {
           dash.classList.remove('show')
           iframe.classList.add('show')
-          console.log(event, event.data)
           iframe.src = event.data.url
+
+          if (interval) {
+            window.clearInterval(interval)
+          }
+          interval = window.setInterval(function () {
+            iframe.location.reload()
+          }, 1000 * 60 * 15 ) // Refresh the iframe every 15 minutes since chromecast resources are scarce.
         }
         window.castReceiverManager.start({statusText: 'Dashboard is loading'})
       }
